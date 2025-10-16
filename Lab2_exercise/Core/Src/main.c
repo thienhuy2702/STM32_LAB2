@@ -56,6 +56,20 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+int timer0_counter = 0;
+int timer0_flag = 0;
+int TIMER_CYCLE = 10;
+void setTimer0 ( int duration ) {
+	timer0_counter = duration / TIMER_CYCLE ;
+	timer0_flag = 0;
+}
+void timer_run () {
+	if ( timer0_counter > 0) {
+		timer0_counter--;
+		if ( timer0_counter == 0) timer0_flag = 1;
+	}
+}
+
 void activeLedSEG(char str[], int length) {
   for (int i=0; i<length; ++i){
     switch (str[i])
@@ -278,13 +292,17 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  setTimer1(100);
-  while (1)
-  {
-	  if (timer1_flag == 1){
-		  setTimer1(100);
+	setTimer1(25);
+	int status = 0;
+	updateClockBuffer();
+	disableAllEN();
+	while (1)
+	{
+	  if (status == 1){
+		  status = 0;
 		  // TODO
 		  HAL_GPIO_TogglePin(DOT_GPIO_Port, DOT_Pin);
+		  HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 		  second++;
 		  if (second >= 60){
 			  second = 0;
@@ -299,10 +317,21 @@ int main(void)
 		  }
 		  updateClockBuffer();
 	  }
-    /* USER CODE END WHILE */
+	  if (timer1_flag == 1){
+		  setTimer1(25);
+		  // TODO
+		  disableAllEN();
+		  update7SEG(index_led);
+		  index_led++;
+		  if (index_led == MAX_LED) {
+			  index_led = 0;
+			  status = 1;
+		  }
+	  }
+	  /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
-  }
+	  /* USER CODE BEGIN 3 */
+	}
   /* USER CODE END 3 */
 }
 
