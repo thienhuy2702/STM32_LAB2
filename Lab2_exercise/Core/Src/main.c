@@ -382,10 +382,28 @@ void activeCol(int index){
 	}
 }
 
-//
 const int MAX_LED_MATRIX = 8;
 int index_led_matrix = 0;
-uint8_t matrix_buffer [8] = {0x18, 0x3C, 0x24, 0x24, 0x3C, 0x3C, 0x24, 0x24};
+// Buffer Animation
+uint8_t Ani[4][8] = {
+		{0x7E, 0x7E, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18},
+		{0x66, 0x66, 0x66, 0x7E, 0x7E, 0x66, 0x66, 0x66},
+		{0x18, 0x3C, 0x24, 0x24, 0x3C, 0x3C, 0x24, 0x24},
+		{0x18, 0x3C, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x18}
+};
+uint8_t matrix_buffer[8] = {0x18, 0x18, 0x18, 0x18, 0xFF, 0x7E, 0x3C, 0x18};
+// update matrix_buffer to animation
+int countBuffer = 0;
+void updateBuffer(){
+	for (int i =0; i< MAX_LED_MATRIX; i++){
+		matrix_buffer[i] = Ani[countBuffer][i];
+	}
+	countBuffer++;
+	if (countBuffer >= 4) {
+		countBuffer = 0;
+	}
+}
+
 void controlRowLed(uint8_t matrix_buffer){
 	for (int i =0 ;i <MAX_LED_MATRIX; i++){
 		bool statusLed = (matrix_buffer >> (7 - i)) & 1;
@@ -479,16 +497,23 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // timer for led matrix
-    setTimer0(10);
-    // timer for LED_RED
+    // timer for led matrix
+  	setTimer0(10);
+    // timer for LED_RED, this led show program running
     setTimer1(100);
+    // counter to updateBuffer
+    int counter = 0;
     while (1)
     {
   	  if (timer0_flag == 1){
   		  setTimer0(10);
   		  // TODO
   		  displayLedMatrix();
+  		  counter++;
+  		  if (counter >= 8){
+  			  updateBuffer();
+  			  counter = 0;
+  		  }
   	  }
   	  if (timer1_flag == 1){
   		  setTimer1(100);
